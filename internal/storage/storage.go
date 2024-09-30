@@ -11,12 +11,15 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 
 	"github.com/jsritawan/ms-ecom/internal/config"
+	"github.com/jsritawan/ms-ecom/internal/model"
 )
 
 type (
 	IStorage[K ModelType] interface {
 		FindById(ctx context.Context, id int) (data K, err error)
 		FindAll(ctx context.Context) (data []K, err error)
+		Save(ctx context.Context, data K) (K, error)
+		SaveWithTx(ctx context.Context, tx *gorm.DB, data K) (K, error)
 	}
 
 	AbstractStorage[K ModelType] struct {
@@ -28,7 +31,9 @@ type (
 		db *gorm.DB
 	}
 
-	ModelType interface{}
+	ModelType interface {
+		*model.User | *model.Profile
+	}
 )
 
 const (
@@ -93,6 +98,13 @@ func (s *Storage) HeathCheck() error {
 	return sqlDB.Ping()
 }
 
+func (s *Storage) AutoMigrate() {
+	s.db.AutoMigrate(
+		&model.Profile{},
+		&model.User{},
+	)
+}
+
 func (s *AbstractStorage[K]) FindById(ctx context.Context, id int) (data K, err error) {
 	err = s.db.WithContext(ctx).Table(s.tableName).First(&data, id).Error
 	return data, err
@@ -100,6 +112,16 @@ func (s *AbstractStorage[K]) FindById(ctx context.Context, id int) (data K, err 
 
 func (s *AbstractStorage[K]) FindAll(ctx context.Context) (data []K, err error) {
 	err = s.db.WithContext(ctx).Table(s.tableName).Find(&data).Error
+	return data, err
+}
+
+func (s *AbstractStorage[K]) Save(ctx context.Context, data K) (K, error) {
+	err := s.db.WithContext(ctx).Table(s.tableName).Save(&data).Error
+	return data, err
+}
+
+func (s *AbstractStorage[K]) SaveWithTx(ctx context.Context, tx *gorm.DB, data K) (K, error) {
+	err := tx.WithContext(ctx).Save(&data).Error
 	return data, err
 }
 
