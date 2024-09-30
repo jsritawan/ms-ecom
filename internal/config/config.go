@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -13,16 +14,44 @@ import (
 type (
 	Config struct {
 		Server ServerConfig `yaml:"server"`
+		DB     DBConfig     `mapstructure:"database"`
+		Logger LoggerConfig `yaml:"logger"`
 	}
 
 	ServerConfig struct {
 		Port string `yaml:"port,omitempty"`
 	}
+
+	DBConfig struct {
+		Host         string        `yaml:"host,omitempty"`
+		Port         string        `yaml:"port,omitempty"`
+		Username     string        `yaml:"username,omitempty"`
+		Password     string        `yaml:"password,omitempty"`
+		Name         string        `yaml:"name,omitempty"`
+		SSLMode      string        `yaml:"sslmode,omitempty"`
+		Timezone     string        `yaml:"timezone,omitempty"`
+		MaxIdleConns int           `yaml:"maxIdleConns,omitempty"`
+		MaxIdleTime  time.Duration `yaml:"maxIdleTime,omitempty"`
+		MaxOpenConns int           `yaml:"maxOpenConns,omitempty"`
+		MaxLifeTime  time.Duration `yaml:"maxLifeTime,omitempty"`
+		SSLCert      string        `yaml:"sslcert,omitempty"`
+		SSLKey       string        `yaml:"sslkey,omitempty"`
+		SSLRootCert  string        `yaml:"sslrootcert,omitempty"`
+	}
+
+	LoggerConfig struct {
+		Level       string `yaml:"level"`
+		OnCloud     bool   `yaml:"oncloud"`
+		Development bool   `yaml:"development"`
+		Stacktrace  bool   `yaml:"stacktrace"`
+		Caller      bool   `yaml:"caller"`
+		DbLevel     string `yaml:"dblevel"`
+	}
 )
 
 const (
 	defaultConfigName = "config"
-	defaultConfigType = "yml"
+	defaultConfigType = "yaml"
 	defaultConfigPath = "../../etc"
 )
 
